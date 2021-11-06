@@ -1,3 +1,10 @@
+# AWS EC2
+
+- Public DNS name: ec2-15-188-207-25.eu-west-3.compute.amazonaws.com
+- IP: 35.156.195.4
+
+---------------------- Hambuchen's README
+
 # NixOps tutorial
 
 This repo is a practical tutorial for setting up [NixOps](https://nixos.org/nixops/) deployments.

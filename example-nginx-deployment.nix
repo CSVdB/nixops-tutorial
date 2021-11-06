@@ -1,5 +1,5 @@
 let
-  awsKeyId = "nixops-example-user"; # symbolic name looked up in ~/.ec2-keys or a ~/.aws/credentials profile name
+  awsKeyId = "PACT-user"; # symbolic name looked up in ~/.ec2-keys or a ~/.aws/credentials profile name
   region = "eu-central-1";
 
   pkgs = import <nixpkgs> {};
@@ -120,24 +120,29 @@ in
   #     ignored using `...`.
   #     This can be used to, for example, insert the IP of one machine into
   #     the config file of a service on another machine.
-  machine1 = { resources, nodes, ... }: {
+  machine1 = { resources, nodes, ... }:
+  let
+    dnsName = "pactcommunity.be";
+  in
+  {
 
     # Cloud provider settings; here for AWS
     deployment.targetEnv = "ec2";
     deployment.ec2.accessKeyId = awsKeyId; # symbolic name looked up in ~/.ec2-keys or a ~/.aws/credentials profile name
     deployment.ec2.region = region;
-    deployment.ec2.instanceType = "t3.medium";
-    deployment.ec2.ebsInitialRootDiskSize = 20; # GB
+    deployment.ec2.instanceType = "t2.micro";
+    deployment.ec2.ebsInitialRootDiskSize = 8; # GB
     deployment.ec2.keyPair = resources.ec2KeyPairs.my-key-pair;
     deployment.ec2.associatePublicIpAddress = true;
     deployment.ec2.subnetId = resources.vpcSubnets.my-nixops-vpc-subnet-a;
     deployment.ec2.securityGroups = []; # we don't want its default `[ "default" ]`
     deployment.ec2.securityGroupIds = [ resources.ec2SecurityGroups.my-nixops-sg.name ];
+    security.acme.email = "vandenbroeck@cs-vdb.com";
+    security.acme.acceptTerms = true;
 
     # Packages available in SSH sessions to the machine
     environment.systemPackages = [
       pkgs.bind.dnsutils # for `dig` etc.
-      pkgs.htop
       pkgs.jq
     ];
 
@@ -149,6 +154,15 @@ in
     # Enable nginx service
     services.nginx = {
       enable = true;
+      # virtualHosts.someDefaultHost = {
+      virtualHosts.${dnsName} = {
+        default = true; # makes this the default vhost if no other one matches
+        locations."/" = {
+          root = pkgs.writeTextDir "index.html" "Welcome to the PACT community!";
+        };
+        addSSL = true;
+        enableACME = true;
+      };
     };
 
   };
