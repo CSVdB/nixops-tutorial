@@ -4,6 +4,12 @@ let
 
   pkgs = import <nixpkgs> {};
 
+  pactFlake = import (builtins.fetchGit {
+    url = "git@github.com:CSVdB/PACT-code.git";
+    rev = "b2b97a9f3942cb1622cf2b2daed6e93d60c4d509";
+    ref = "master";
+  } + "/flake.nix");
+
   # We must declare an AWS Subnet for each Availability Zone
   # because Subnets cannot span AZs.
   subnets = [
@@ -13,6 +19,10 @@ let
   ];
 in
 {
+  imports =
+    [ pactFlake.outputs.nixosModules.pact-web-server
+    ];
+
   network.description = "NixOps example deployment";
   network.enableRollback = true;
 
@@ -158,12 +168,13 @@ in
       virtualHosts.${dnsName} = {
         default = true; # makes this the default vhost if no other one matches
         locations."/" = {
-          root = pkgs.writeTextDir "index.html" "Welcome to the PACT community!";
+          root = pkgs.writeTextDir "index.html" "Welcome to the PACT community! Coming soon!";
         };
         addSSL = true;
         enableACME = true;
       };
     };
 
+    # services.pactFlake.outputs.nixosModules.pact-web-server.enable = true;
   };
 }
